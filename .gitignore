@@ -1,0 +1,4 @@
+*.pt
+*.mp4
+norfairvenv/
+*.DS_Store

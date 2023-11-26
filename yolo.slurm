@@ -9,7 +9,8 @@
 #SBATCH --output=/work/cseos2g/gclark/ai-football-chartmaker/job.%J.out
 
 
-module load example/test
+cd /work/cseos2g/gclark/ai-football-chartmaker
 
-hostname
-sleep 60
+module load /common/cseos2g/gclark/yolov8
+
+python yolov8Example.py

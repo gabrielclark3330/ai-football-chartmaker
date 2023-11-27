@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=02:00:00          # Run time in hh:mm:ss
-#SBATCH --mem-per-cpu=2048       # Maximum memory required per CPU (in megabytes)
+#SBATCH --mem-per-cpu=1024       # Maximum memory required per CPU (in megabytes)
 #SBATCH --job-name=yolov8test
 #SBATCH --partition=gpu 
 #SBATCH --gres=gpu 
@@ -10,7 +10,7 @@
 
 
 cd /work/cseos2g/gclark/ai-football-chartmaker
-
-module load /common/cseos2g/gclark/yolov8
+module load anaconda
+conda activate /common/cseos2g/gclark/yolov8
 
 python yolov8Example.py

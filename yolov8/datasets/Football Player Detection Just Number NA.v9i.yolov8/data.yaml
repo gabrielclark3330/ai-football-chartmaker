@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 5
+names: ['10', '20', '30', '40', '50']
+
+roboflow:
+  workspace: football-player-identification
+  project: football-player-detection-6rvei
+  version: 9
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/football-player-identification/football-player-detection-6rvei/dataset/9

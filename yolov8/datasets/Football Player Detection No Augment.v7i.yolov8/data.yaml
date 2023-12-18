@@ -4,6 +4,7 @@ test: ../test/images
 
 nc: 9
 names: ['10L', '10R', '20L', '20R', '30L', '30R', '40L', '40R', '50']
+#         0      1      2       3     4      5      6      7      8
 
 roboflow:
   workspace: football-player-identification

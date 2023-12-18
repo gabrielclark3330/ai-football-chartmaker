@@ -7,9 +7,9 @@ if __name__ == '__main__':
    # Training.
    results = model.train(
       #data='./datasets/Football Player Detection Just Number NA.v9i.yolov8/data.yaml',
-      data='./datasets/Football Player Detection (off deff ref qb).v1i.yolov8 (1)/data.yaml',
+      data='./datasets/Football Player Detection (players reff).v2i.yolov8/data.yaml',
       imgsz=1280,
       epochs=150,
       batch=14,
-      name='yolov8m_justnumbers_150e'
+      name='yolov8m_playersreffsonly_150e'
    )

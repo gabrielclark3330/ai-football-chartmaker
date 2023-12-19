@@ -5,6 +5,8 @@ from ultralytics import YOLO
 
 import supervision as sv
 
+import cv2
+
 
 def process_video(
     source_weights_path: str,
@@ -27,7 +29,7 @@ def process_video(
                 frame, verbose=False, conf=confidence_threshold, iou=iou_threshold
             )[0]
             detections = sv.Detections.from_ultralytics(results)
-            detections = tracker.update_with_detections(detections)
+            #detections = tracker.update_with_detections(detections)
 
             annotated_frame = box_annotator.annotate(
                 scene=frame.copy(), detections=detections
@@ -36,28 +38,37 @@ def process_video(
             annotated_labeled_frame = label_annotator.annotate(
                 scene=annotated_frame, detections=detections
             )
+            # Display the annotated frame
+            cv2.imshow("YOLOv8 Inference", annotated_labeled_frame)
 
-            sink.write_frame(frame=annotated_labeled_frame)
+            # Break the loop if 'q' is pressed
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+            #sink.write_frame(frame=annotated_labeled_frame)
+
 
 if __name__ == "__main__":
+    inPath = "../oldMethod/footballss.mp4"
+    outPath = "./footballssOut.mp4"
+    weightsPath = "./runs/detect/yolov8m_justnumbers_150e/weights/best.pt"
     parser = argparse.ArgumentParser(
         description="Video Processing with YOLO and ByteTrack"
     )
     parser.add_argument(
         "--source_weights_path",
-        required=True,
+        default=weightsPath,
         help="Path to the source weights file",
         type=str,
     )
     parser.add_argument(
         "--source_video_path",
-        required=True,
+        default=inPath,
         help="Path to the source video file",
         type=str,
     )
     parser.add_argument(
         "--target_video_path",
-        required=True,
+        default=outPath,
         help="Path to the target video file (output)",
         type=str,
     )
@@ -80,3 +91,4 @@ if __name__ == "__main__":
         confidence_threshold=args.confidence_threshold,
         iou_threshold=args.iou_threshold,
     )
+    cv2.destroyAllWindows()

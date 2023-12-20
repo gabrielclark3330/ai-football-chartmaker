@@ -58,7 +58,7 @@ def root_homography_draw(self, frame, tracked_objects, coord_transform=None):
         for i, past_points in enumerate(self.past_points[obj.id]):
             overlay = frame.copy()
             #last = coord_transform.abs_to_rel(last)
-            for j, point in enumerate(past_points):#coord_transform.abs_to_rel(past_points)):
+            for j, point in enumerate(past_points): #coord_transform.abs_to_rel(past_points)):
                 Drawer.line(
                     overlay,
                     tuple(last[j].astype(int)),

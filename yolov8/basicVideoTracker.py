@@ -143,6 +143,37 @@ def convert_xyxy_array_np(xyxy_array, transformation_function):
 
     return transformed_xyxy
 
+def check_and_add_new_number_detection_set(best_number_detection_set, new_number_detection_set):
+    # TODO: validation on if the numbers are correctly matched
+    if len(new_number_detection_set) > len(best_number_detection_set):
+        return new_number_detection_set
+    elif len(new_number_detection_set) == len(best_number_detection_set) and np.sum(new_number_detection_set.confidence) > np.sum(best_number_detection_set.confidence):
+        return new_number_detection_set
+    else:
+        return best_number_detection_set
+
+def match_points(set1, set2):
+    """
+    Match each point in set1 to the closest point in set2.
+
+    :param set1: NumPy array of points (shape Nx2).
+    :param set2: NumPy array of points (shape Mx2).
+    :return: List of tuples where each tuple contains a point from set1
+             and its closest point in set2.
+    """
+    matches = []
+    for set1_index, point in enumerate(set1):
+        # Calculate distances to all points in set2
+        distances = np.sqrt(np.sum((set2 - point) ** 2, axis=1))
+
+        # Find the closest point in set2
+        min_distance_index = np.argmin(distances)
+        min_distance = distances[min_distance_index]
+        #matches.append((point, set2[min_distance_index]))
+        matches.append((set1_index, min_distance_index))
+
+    return matches
+
 def process_video(
     numbers_weights_path: str,
     players_weights_path: str,
@@ -172,8 +203,9 @@ def process_video(
             )
 
     detections_in_initial_reference_frame = {} # key is a track id and the value is an array of detections in global reference frame ((pointx, pointy), class_id) class_id=[player(0), ref(1)]
-    initial_frame_classes = {} # key is a track id and value is a detections in global reference frame ((pointx, pointy), class_id) class_id=[defense(0), oline(1), qb(2), ref(3), skill(4)]
-    is_first_frame = True # index 5 is where we get our class labels
+    first_frame_classes = {} # key is a track id and the value is class_id=[defense(0), oline(1), qb(2), ref(3), skill(4)]
+    frame_index = 0 # index 5 is where we get our class labels
+    best_number_detection_set = []
 
     with sv.VideoSink(target_path=target_video_path, video_info=video_info) as sink:
         for frame in tqdm(frame_generator, total=video_info.total_frames):
@@ -187,47 +219,71 @@ def process_video(
             )[0]
             player_detections = sv.Detections.from_ultralytics(player_results)
 
-            player_class_results = player_class_model(
-                frame, verbose=False, conf=confidence_threshold, iou=iou_threshold
-            )[0]
-            player_class_detections = sv.Detections.from_ultralytics(player_class_results)
-
-            # don't use the players on the field to do key points
-            # make sure you filter their detection boxes out
+            # we shouldn't use the players on the field to do key points so we filter their detection boxes out
             norfair_player_detections, player_boxes = yolo_detections_to_norfair_detections(player_detections)
             mask = create_mask(player_boxes, frame)
             coord_transformations = motion_estimator.update(frame, mask)
 
-            # convert detections into initial reference frame
+            # use tracker's Kalman filter to stabilize detections
             player_detections = tracker.update_with_detections(player_detections)
-            player_detections.xyxy = convert_xyxy_array_np(player_detections.xyxy.copy(), coord_transformations.rel_to_abs)
-            #player_detections.xyxy = convert_xyxy_array_np(player_detections.xyxy.copy(), coord_transformations.abs_to_rel)
 
-            # transform all of our detections into the initial reference frame and add them to a dict
+            # right before the snap record classes for each player
+            if frame_index==5:
+                player_class_results = player_class_model(
+                    frame, verbose=False, conf=confidence_threshold, iou=iou_threshold
+                )[0]
+                player_class_detections = sv.Detections.from_ultralytics(player_class_results)
+
+                player_class_centroids = player_class_detections.get_anchors_coordinates(Position.CENTER)
+                player_class_labels = player_class_detections.class_id
+
+                player_centroids = player_detections.get_anchors_coordinates(Position.CENTER)
+                player_labels = player_detections.class_id
+                player_track_ids = player_detections.tracker_id
+
+                if len(player_class_centroids)!=len(player_centroids):
+                    print("ERROR detection amount mismatch")
+
+                # match each class point to its closest player counter part
+                matches = match_points(player_class_centroids, player_centroids) # where matches are (index in set 1, index in set 2)
+
+                for class_index, player_index in matches:
+                    player_track_id = player_track_ids[player_index]
+                    first_frame_classes[player_track_id] = player_class_labels[class_index]
+            if frame_index<=5:
+                frame_index+=1
+
+            # convert detections into initial reference frame
+            player_detections.xyxy = convert_xyxy_array_np(player_detections.xyxy.copy(), coord_transformations.rel_to_abs)
+
+            # add the player detections to a dict
+            player_centroids = player_detections.get_anchors_coordinates(Position.CENTER)
             for detection_index, track_id in enumerate(player_detections.tracker_id):
-                centroid_in_current_reference_frame = centroid_from_xyxy(player_detections.xyxy[detection_index])
-                centroid_in_initial_reference_frame = coord_transformations.rel_to_abs(np.array([centroid_in_current_reference_frame]))
-                detection = (centroid_in_initial_reference_frame, player_detections.class_id[detection_index]) # a point is structured as ((pointx, pointy), class_id)
+                detection = (player_centroids[detection_index], player_detections.class_id[detection_index]) # a point is structured as ((pointx, pointy), class_id)
 
                 if track_id not in detections_in_initial_reference_frame:
                     detections_in_initial_reference_frame[track_id] = [detection]
                 else:
                     detections_in_initial_reference_frame[track_id].append(detection)
 
+            temp_number_detections = copy.deepcopy(number_detections)
+            temp_number_detections.xyxy = convert_xyxy_array_np(number_detections.xyxy.copy(), coord_transformations.rel_to_abs)
+            best_number_detection_set = check_and_add_new_number_detection_set(best_number_detection_set, temp_number_detections)
+
             # player paths adjusted for camera movement
             frame = trace_annotator.annotate(scene=frame.copy(), detections=player_detections, transformation_function=coord_transformations.abs_to_rel)
 
             # player frames and labels in the current reference frame
-            '''
             temp_player_detections = copy.deepcopy(player_detections)
             temp_player_detections.xyxy = convert_xyxy_array_np(player_detections.xyxy.copy(), coord_transformations.abs_to_rel)
             frame = box_annotator.annotate(scene=frame, detections=temp_player_detections)
             frame = label_annotator.annotate(scene=frame, detections=temp_player_detections)
-            '''
 
+            '''
             # specific player classes frames and labels in the current reference frame
             frame = box_annotator.annotate(scene=frame, detections=player_class_detections)
             frame = label_annotator.annotate(scene=frame, detections=player_class_detections)
+            '''
 
             # number frames and labels
             frame = box_annotator.annotate(scene=frame, detections=number_detections)
@@ -244,12 +300,15 @@ def process_video(
                 break
             sink.write_frame(frame=frame)
 
+    print(first_frame_classes)
+    print(best_number_detection_set)
+
 
 if __name__ == "__main__":
     #input_path = "../oldMethod/footballss.mp4"
-    #input_path = "./BillsExample.mp4"
+    input_path = "./BillsExample.mp4"
     #input_path = "./CardsExample.mp4"
-    input_path = "./SteelersExample.mp4"
+    #input_path = "./SteelersExample.mp4"
     output_path = "./tempNoSync.mp4"
     number_weights_path = "./runs/detect/yolov8m_justnumbers_150e/weights/best.pt"
     player_weights_path = "./runs/detect/yolov8m_playersreffsonly_150e/weights/best.pt"

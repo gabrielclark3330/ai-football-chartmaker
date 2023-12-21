@@ -5,7 +5,15 @@ from ultralytics import YOLO
 
 import supervision as sv
 import numpy as np
+#from sklearn.cluster import KMeans
+#from sklearn.mixture import GaussianMixture
+from itertools import combinations
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+import matplotlib.pyplot as plt
+
 import copy
+import json  
 
 import cv2
 
@@ -32,6 +40,56 @@ from supervision.annotators.utils import ColorLookup, Trace, resolve_color
 from supervision.detection.core import Detections
 from supervision.draw.color import Color, ColorPalette
 from supervision.geometry.core import Position
+
+'''
+{"label": "t10l","x": 77.12,"y": 71.28,},
+{"label": "t20l","x": 76.91,"y": 201.75,},
+{"label": "t30l","x": 76.91,"y": 336.19,},
+{"label": "t40l","x": 77.33,"y": 468.95,},
+{"label": "50l","x": 76.70,"y": 606.10,},
+{"label": "b40l","x": 77.12,"y": 739.07,},
+{"label": "b30l","x": 76.70,"y": 873.92,},
+{"label": "b20l","x": 76.91,"y": 1009.19,},
+{"label": "b10l","x": 76.70,"y": 1144.45,},
+
+{"label": "t10r","x": 513.97,"y": 66.90,},
+{"label": "t20r","x": 514.18,"y": 201.34,},
+{"label": "t30r","x": 514.60,"y": 336.19,},
+{"label": "t40r","x": 514.18,"y": 470.41,},
+{"label": "50r","x": 514.60,"y": 602.76,},
+{"label": "b40r","x": 514.39,"y": 739.07,},
+{"label": "b30r","x": 513.97,"y": 873.71,},
+{"label": "b20r","x": 514.60,"y": 1008.98,},
+{"label": "b10r","x": 513.56,"y": 1141.12,},
+'''
+# note these are from the perspective of the actual chart which is rotated 90 counter clockwise from almost all of our footage
+end_result_diagram_info = {
+    "top_boxes": [
+        {"label": "b10l","x": 76.70,"y": 1144.45,},
+        {"label": "b20l","x": 76.91,"y": 1009.19,},
+        {"label": "b30l","x": 76.70,"y": 873.92,},
+        {"label": "b40l","x": 77.12,"y": 739.07,},
+        {"label": "50l","x": 76.70,"y": 606.10,},
+        {"label": "t40l","x": 77.33,"y": 468.95,},
+        {"label": "t30l","x": 76.91,"y": 336.19,},
+        {"label": "t20l","x": 76.91,"y": 201.75,},
+        {"label": "t10l","x": 77.12,"y": 71.28,},
+    ],
+    "bottom_boxes": [
+        {"label": "b10r","x": 513.56,"y": 1141.12,},
+        {"label": "b20r","x": 514.60,"y": 1008.98,},
+        {"label": "b30r","x": 513.97,"y": 873.71,},
+        {"label": "b40r","x": 514.39,"y": 739.07,},
+        {"label": "50r","x": 514.60,"y": 602.76,},
+        {"label": "t40r","x": 514.18,"y": 470.41,},
+        {"label": "t30r","x": 514.60,"y": 336.19,},
+        {"label": "t20r","x": 514.18,"y": 201.34,},
+        {"label": "t10r","x": 513.97,"y": 66.90,},
+    ],
+    "width": 590,
+    "height": 1215,
+    "key": "footballFieldDiagram.png",
+}
 
 class TraceAnnotator:
     def __init__(
@@ -152,6 +210,126 @@ def check_and_add_new_number_detection_set(best_number_detection_set, new_number
     else:
         return best_number_detection_set
 
+def find_lines(number_detections):
+    points = number_detections.get_anchors_coordinates(Position.CENTER)
+    number_classes = number_detections.class_id
+
+    points_array = np.array(points)
+    n_points = len(points)
+    best_error = float('inf')
+    best_lines = None
+    best_classes = None
+
+    # Iterate over all possible ways to split points into two groups
+    for n in range(1, n_points // 2 + 1):
+        for subset in combinations(range(n_points), n):
+            set1 = points_array[list(subset)]
+            set2 = points_array[list(set(range(n_points)) - set(subset))]
+
+            # Fit a line to each set and calculate the error
+            error = 0
+            for point_set in [set1, set2]:
+                if len(point_set) > 1:  # Need at least 2 points to fit a line
+                    reg = LinearRegression().fit(point_set[:, 0].reshape(-1, 1), point_set[:, 1])
+                    predictions = reg.predict(point_set[:, 0].reshape(-1, 1))
+                    error += mean_squared_error(point_set[:, 1], predictions)
+
+            # Check if this division has a lower error than the best found so far
+            if error < best_error:
+                best_error = error
+                best_lines = (set1, set2)
+                classes = np.zeros(n_points)
+                classes[list(subset)] = 1  # Classify points in the subset as 1, others as 0
+                best_classes = classes
+
+    number_points_and_classes = [(points[i].tolist(), int(number_classes[i])) for i in range(len(number_classes))]
+
+    '''
+    '''
+    x1, y1 = zip(*best_lines[0].tolist())
+    x2, y2 = zip(*best_lines[1].tolist())
+    fig, ax = plt.subplots()
+    ax.scatter(x1, y1, color='blue', label='Line 1')
+    ax.scatter(x2, y2, color='red', label='Line 2')
+    #label each point with its class
+    for point, number_class in number_points_and_classes:
+        ax.annotate(number_class, point)
+    # Display the plot
+    plt.show()
+
+    bottom_line = None
+    top_line = None
+    if np.mean(best_lines[0][0, :]) < np.mean(best_lines[1][0, :]): # see which line on average is on top
+        top_line = [number_points_and_classes[i] for i in range(len(best_classes)) if best_classes[i]==1]
+        bottom_line = [number_points_and_classes[i] for i in range(len(best_classes)) if best_classes[i]==0]
+    else:
+        top_line = [number_points_and_classes[i] for i in range(len(best_classes)) if best_classes[i]==0]
+        bottom_line = [number_points_and_classes[i] for i in range(len(best_classes)) if best_classes[i]==1]
+
+    return (bottom_line, top_line)
+
+def find_subsequence(seq, subseq):
+    # This function finds a subsequence in a sequence using NumPy
+    target_strides = np.lib.stride_tricks.sliding_window_view(seq, len(subseq))
+    matches = np.all(target_strides == subseq, axis=1)
+    return np.where(matches)[0]
+
+def warp_point(detection, homography_matrix):
+    point = np.array(detection[0])
+    point_homogeneous = np.append(point, 1) # Convert to homogeneous coordinates
+    transformed_point = np.dot(homography_matrix, point_homogeneous)
+    transformed_point /= transformed_point[2] # Convert back to Cartesian coordinates
+    return (transformed_point[:2].tolist(), detection[1])
+
+def invert_tracking_data_over_y_ax(detections_in_initial_reference_frame, lines_bottom_top):
+    for key in detections_in_initial_reference_frame:
+        for i in range(len(detections_in_initial_reference_frame[key])):
+            detections_in_initial_reference_frame[key][i] = ([detections_in_initial_reference_frame[key][i][0][0], -detections_in_initial_reference_frame[key][i][0][1]], detections_in_initial_reference_frame[key][i][1])
+    for top_or_bottom in [0,1]:
+        for detection_index in range(len(lines_bottom_top[top_or_bottom])):
+            lines_bottom_top[top_or_bottom][detection_index] = ([lines_bottom_top[top_or_bottom][detection_index][0], -lines_bottom_top[top_or_bottom][detection_index][1]], lines_bottom_top[top_or_bottom][detection_index][1])
+    tmp = (lines_bottom_top[1], lines_bottom_top[0])
+    lines_bottom_top = tmp
+    return lines_bottom_top
+
+
+
+def cast_data_to_end_diagram(detections_in_initial_reference_frame, lines_bottom_top, end_result_diagram_info):
+    # TODO: probably need to find a more robust solution than sorting by x values
+    ideal_sideline = [0,1,2,3,4,3,2,1,0] # [10,20,30,40,50,40,30,20,10]
+    film_number_positions = []
+    chart_number_positions = []
+
+    bottom_line = lines_bottom_top[0]
+    bottom_line = sorted(bottom_line, key=lambda x : x[0][0])
+    bottom_line_classes = [x[1] for x in bottom_line]
+    bottom_line_start_index = find_subsequence(ideal_sideline, bottom_line_classes)
+    for i in range(len(bottom_line_classes)):
+        film_number_positions.append(bottom_line[i][0])
+
+        number_index = i+bottom_line_start_index[0]
+        x = end_result_diagram_info["bottom_boxes"][number_index]["x"]
+        y = end_result_diagram_info["bottom_boxes"][number_index]["y"]
+        chart_number_positions.append((x,y))
+
+    top_line = lines_bottom_top[1]
+    top_line = sorted(top_line, key=lambda x : x[0][0])
+    top_line_classes = [x[1] for x in top_line]
+    top_line_start_index = find_subsequence(ideal_sideline, top_line_classes)
+    for i in range(len(top_line_classes)):
+        film_number_positions.append(top_line[i][0])
+
+        number_index = i+top_line_start_index[0]
+        x = end_result_diagram_info["top_boxes"][number_index]["x"]
+        y = end_result_diagram_info["top_boxes"][number_index]["y"]
+        chart_number_positions.append((x,y))
+
+    h, status = cv2.findHomography(np.array(film_number_positions), np.array(chart_number_positions))
+
+    for key in detections_in_initial_reference_frame:
+        for i in range(len(detections_in_initial_reference_frame[key])):
+            detections_in_initial_reference_frame[key][i] = warp_point(detections_in_initial_reference_frame[key][i], h)
+
 def match_points(set1, set2):
     """
     Match each point in set1 to the closest point in set2.
@@ -188,6 +366,7 @@ def process_video(
     player_class_model = YOLO(players_class_weights_path)
 
     tracker = sv.ByteTrack()
+    number_tracker = sv.ByteTrack()
     trace_annotator = TraceAnnotator(trace_length=500)
     box_annotator = sv.BoundingBoxAnnotator()
     label_annotator = sv.LabelAnnotator()
@@ -203,9 +382,9 @@ def process_video(
             )
 
     detections_in_initial_reference_frame = {} # key is a track id and the value is an array of detections in global reference frame ((pointx, pointy), class_id) class_id=[player(0), ref(1)]
-    first_frame_classes = {} # key is a track id and the value is class_id=[defense(0), oline(1), qb(2), ref(3), skill(4)]
+    first_frame_trackid_classes = {} # key is a track id and the value is class_id=[defense(0), oline(1), qb(2), ref(3), skill(4)]
     frame_index = 0 # index 5 is where we get our class labels
-    best_number_detection_set = []
+    best_number_detections = []
 
     with sv.VideoSink(target_path=target_video_path, video_info=video_info) as sink:
         for frame in tqdm(frame_generator, total=video_info.total_frames):
@@ -213,6 +392,7 @@ def process_video(
                 frame, verbose=False, conf=confidence_threshold, iou=iou_threshold
             )[0]
             number_detections = sv.Detections.from_ultralytics(number_results)
+            #number_detections = number_tracker.update_with_detections(number_detections)
 
             player_results = player_model(
                 frame, verbose=False, conf=confidence_threshold, iou=iou_threshold
@@ -228,7 +408,8 @@ def process_video(
             player_detections = tracker.update_with_detections(player_detections)
 
             # right before the snap record classes for each player
-            if frame_index==5:
+            frame_wait_time = 5
+            if frame_index==frame_wait_time:
                 player_class_results = player_class_model(
                     frame, verbose=False, conf=confidence_threshold, iou=iou_threshold
                 )[0]
@@ -249,8 +430,8 @@ def process_video(
 
                 for class_index, player_index in matches:
                     player_track_id = player_track_ids[player_index]
-                    first_frame_classes[player_track_id] = player_class_labels[class_index]
-            if frame_index<=5:
+                    first_frame_trackid_classes[int(player_track_id)] = int(player_class_labels[class_index])
+            if frame_index<=frame_wait_time:
                 frame_index+=1
 
             # convert detections into initial reference frame
@@ -259,16 +440,16 @@ def process_video(
             # add the player detections to a dict
             player_centroids = player_detections.get_anchors_coordinates(Position.CENTER)
             for detection_index, track_id in enumerate(player_detections.tracker_id):
-                detection = (player_centroids[detection_index], player_detections.class_id[detection_index]) # a point is structured as ((pointx, pointy), class_id)
+                detection = (player_centroids[detection_index].tolist(), int(player_detections.class_id[detection_index])) # a point is structured as ((pointx, pointy), class_id)
 
                 if track_id not in detections_in_initial_reference_frame:
-                    detections_in_initial_reference_frame[track_id] = [detection]
+                    detections_in_initial_reference_frame[int(track_id)] = [detection]
                 else:
-                    detections_in_initial_reference_frame[track_id].append(detection)
+                    detections_in_initial_reference_frame[int(track_id)].append(detection)
 
             temp_number_detections = copy.deepcopy(number_detections)
             temp_number_detections.xyxy = convert_xyxy_array_np(number_detections.xyxy.copy(), coord_transformations.rel_to_abs)
-            best_number_detection_set = check_and_add_new_number_detection_set(best_number_detection_set, temp_number_detections)
+            best_number_detections = check_and_add_new_number_detection_set(best_number_detections, temp_number_detections)
 
             # player paths adjusted for camera movement
             frame = trace_annotator.annotate(scene=frame.copy(), detections=player_detections, transformation_function=coord_transformations.abs_to_rel)
@@ -278,12 +459,9 @@ def process_video(
             temp_player_detections.xyxy = convert_xyxy_array_np(player_detections.xyxy.copy(), coord_transformations.abs_to_rel)
             frame = box_annotator.annotate(scene=frame, detections=temp_player_detections)
             frame = label_annotator.annotate(scene=frame, detections=temp_player_detections)
-
-            '''
             # specific player classes frames and labels in the current reference frame
-            frame = box_annotator.annotate(scene=frame, detections=player_class_detections)
-            frame = label_annotator.annotate(scene=frame, detections=player_class_detections)
-            '''
+            #frame = box_annotator.annotate(scene=frame, detections=player_class_detections)
+            #frame = label_annotator.annotate(scene=frame, detections=player_class_detections)
 
             # number frames and labels
             frame = box_annotator.annotate(scene=frame, detections=number_detections)
@@ -300,8 +478,60 @@ def process_video(
                 break
             sink.write_frame(frame=frame)
 
-    print(first_frame_classes)
-    print(best_number_detection_set)
+    #print(first_frame_trackid_classes)
+    #print(best_number_detections)
+    #print(find_lines(best_number_detections))
+    #print(detections_in_initial_reference_frame)
+
+
+    lines_bottom_top = find_lines(best_number_detections)
+    #steelers fix
+    '''
+    del_index = None
+    for detection_index in range(len(lines_bottom_top[1])):
+        if lines_bottom_top[1][detection_index][0][0]<0 and lines_bottom_top[1][detection_index][1]==2:
+            del_index = detection_index
+    lines_bottom_top[1].pop(del_index)
+    '''
+
+    #cards fix
+    '''
+    del_index = None
+    for detection_index in range(len(lines_bottom_top[1])):
+        if lines_bottom_top[1][detection_index][0][0]<500 and lines_bottom_top[1][detection_index][1]==1:
+            del_index = detection_index
+    lines_bottom_top[1].pop(del_index)
+    for detection_index in range(len(lines_bottom_top[0])):
+        if lines_bottom_top[0][detection_index][0][0]<600 and lines_bottom_top[0][detection_index][1]==2:
+            lines_bottom_top[0][detection_index] = (lines_bottom_top[0][detection_index][0], 1)
+    '''
+
+    #bills fix
+    print(lines_bottom_top)
+
+
+
+    #lines_bottom_top = invert_tracking_data_over_y_ax(detections_in_initial_reference_frame, lines_bottom_top)
+    cast_data_to_end_diagram(detections_in_initial_reference_frame, lines_bottom_top, end_result_diagram_info)
+
+    '''
+    fig, ax = plt.subplots()
+    for track_key in first_frame_trackid_classes:
+        if first_frame_trackid_classes[track_key]==4:
+            xs = [x[0][0] for x in detections_in_initial_reference_frame[track_key]]
+            ys = [x[0][1] for x in detections_in_initial_reference_frame[track_key]]
+            ax.scatter(xs, ys, color='blue', label='Line 1')
+    # Display the plot
+    plt.show()
+    '''
+
+
+    with open(f'../react_play_viewer/src/{source_video_path}_player_detections_json_string.json', 'w') as fp:
+        json.dump(detections_in_initial_reference_frame, fp, indent=4)
+    with open(f'../react_play_viewer/src/{source_video_path}_player_classes_json_string.json', 'w') as fp:
+        json.dump(first_frame_trackid_classes, fp, indent=4)
+    #with open(f'{source_video_path}_number_detections_json_string.json', 'w') as fp:
+    #    json.dump(lines_bottom_top, fp, indent=4)
 
 
 if __name__ == "__main__":

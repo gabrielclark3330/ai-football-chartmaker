@@ -2,7 +2,7 @@ WIP but we can create charts like this!!!
 
 
 
-https://github.com/gabrielclark3330/ai-football-chartmaker/assets/59420727/a6b6c863-c6a6-41cf-b6a5-01e8cf26988e
+https://github.com/gabrielclark3330/ai-football-chartmaker/assets/59420727/a6b6c863-c6a6-41cf-b6a5-01e8cf26988e.mp4
 ![image (4)](https://github.com/gabrielclark3330/ai-football-chartmaker/assets/59420727/6fcf8481-a42a-4874-86da-24c02d96c3c7)
 
 

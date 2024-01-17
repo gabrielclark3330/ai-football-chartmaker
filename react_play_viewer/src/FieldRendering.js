@@ -79,17 +79,14 @@ const MyImageComponent = () => {
     });
     if (playerClass === 2 || playerClass === 4) {
       circles.push(
-        <>
           <CircleWithLetter x={data[0][0]} y={data[0][1]} letter={playerLetters[playerClass]} color={classColors[playerClass]} />
-        </>);
-      paths.push(<>
+        );
+      paths.push(
         <PathWithEnding data={data} beta={1} color={classColors[playerClass]} />
-      </>);
+      );
     } else {
       circles.push(
-        <>
           <CircleWithLetter x={data[0][0]} y={data[0][1]} letter={playerLetters[playerClass]} color={classColors[playerClass]} />
-        </>
       );
     }
   }

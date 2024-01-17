@@ -169,6 +169,20 @@ function HorizontalField() {
         );
 
       }
+      /*
+        <svg className="absolute" width="100%" height="100%">
+          <line
+            className="absolute fill-grey-900/10"
+            y1="0%"
+            y2="100%"
+            x1={`${((i * 5 * 3) / 360) * 100}%`}
+            x2={`${((i * 5 * 3) / 360) * 100}%`}
+            stroke="rgb(17 24 39 / 0.1)"
+            strokeWidth="2px"
+            style={{ vectorEffect: "non-scaling-stroke" }}
+          ></line>
+        </svg>
+      */
       yardlines.push(
         <>
           <div

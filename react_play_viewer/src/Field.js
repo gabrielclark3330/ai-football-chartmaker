@@ -6,7 +6,7 @@ function HorizontalField() {
   let hashes = [];
   for (let i = 0; i < 100; i++) {
     // each tick represents a yard on the field
-    if (i % 5 != 0) {
+    if (i % 5 !== 0) {
       hashes.push(
         <svg className="absolute" width="100%" height="100%">
           <line
@@ -125,7 +125,7 @@ function HorizontalField() {
           </svg>
           </>
         );
-      }else if(i==11) {
+      }else if(i===11) {
         yardlines.push(
           <>
           <svg
@@ -169,20 +169,6 @@ function HorizontalField() {
         );
 
       }
-      /*
-        <svg className="absolute" width="100%" height="100%">
-          <line
-            className="absolute fill-grey-900/10"
-            y1="0%"
-            y2="100%"
-            x1={`${((i * 5 * 3) / 360) * 100}%`}
-            x2={`${((i * 5 * 3) / 360) * 100}%`}
-            stroke="rgb(17 24 39 / 0.1)"
-            strokeWidth="2px"
-            style={{ vectorEffect: "non-scaling-stroke" }}
-          ></line>
-        </svg>
-      */
       yardlines.push(
         <>
           <div
@@ -223,7 +209,7 @@ function VerticalField() {
   let hashes = [];
   for (let i = 0; i < 100; i++) {
     // each tick represents a yard on the field
-    if (i % 5 != 0) {
+    if (i % 5 !== 0) {
       hashes.push(
         <svg className="absolute" width="100%" height="100%">
           <line
@@ -342,7 +328,7 @@ function VerticalField() {
           </svg>
           </>
         );
-      }else if(i==11) {
+      }else if(i===11) {
         yardlines.push(
           <>
           <svg

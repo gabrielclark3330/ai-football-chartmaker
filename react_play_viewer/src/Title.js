@@ -1,6 +1,8 @@
+
+// ml-auto
 export default function Title() {
   return (
-    <div class="relative pt-36 ml-auto">
+    <div class="relative pt-36">
       <div class="lg:w-2/3 text-center mx-auto md:w-2/3">
         <h1 class="text-gray-900 dark:text-white font-bold text-5xl md:text-6xl xl:text-7xl">
           Every play from your game{" "}

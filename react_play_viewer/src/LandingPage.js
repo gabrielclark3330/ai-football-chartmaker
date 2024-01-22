@@ -7,7 +7,7 @@ import { VerticalField, HorizontalField } from "./Field";
 
 function LandingPage() {
   return (
-    <div className="bg-[#f5f5f7] min-h-screen flex flex-col">
+    <div className="bg-[#f5f5f7] min-h-screen flex flex-col overflow-x-hidden">
       <Header />
       <Title />
       <CallToAction />

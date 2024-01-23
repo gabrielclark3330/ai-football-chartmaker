@@ -173,6 +173,7 @@ export default function FilmUpload() {
             value={teamNameText}
             onChange={handleTeamNameChange}
           />
+          <input type="text" id="error" class="bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:outline-none block w-full p-2.5" placeholder="Please Enter Team Name"></input>
         </div>
         <div className="flex flex-row bg-gray-50 p-4">
           <div className="flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out focus:outline-none">

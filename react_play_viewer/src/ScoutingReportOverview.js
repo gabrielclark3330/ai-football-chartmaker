@@ -36,7 +36,15 @@ export default function ScoutingReportOverview() {
         <div className="bg-[#f5f5f7] min-h-screen flex flex-col">
             <AppHeader headerTitles={["Library"]} headerLinks={["/home"]}/>
             <div className="flex justify-center w-full my-14">
-                {reportID} {reportDate}
+
+      <div class="p-5">
+        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 text-center">
+          {reportID}
+        </h5>
+        <p class="mb-3 font-normal text-center text-gray-700">
+                 {reportDate}
+        </p>
+      </div>
             </div>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(24rem,1fr))] gap-4">
                 {tables.map((table, index) => {

@@ -6,7 +6,7 @@ import ScoutingReportCard from "./SoutingReportOverviewCard";
 
 function getRandomDate() {
   const startYear = 2017; // Start from 2017
-  const endYear = 2022;   // Up to 2022
+  const endYear = 2024;   // Up to 2022
   const year = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear;
   const month = Math.floor(Math.random() * 12) + 1; // Random month from 1 to 12
   const day = Math.floor(Math.random() * 28) + 1;   // Random day from 1 to 28 (assuming no leap years)

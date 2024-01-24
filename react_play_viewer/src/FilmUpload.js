@@ -34,20 +34,59 @@ function formatTime(seconds) {
   return timeString.trim();
 }
 
+function TextInputComponent({
+  error,
+  placeholderText,
+  onChange,
+  inputRef,
+  value,
+}) {
+  if (error) {
+    return (
+      <input
+        type="text"
+        id="error"
+        required
+        class="bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:outline-none block w-full p-2.5"
+        placeholder={placeholderText}
+        ref={inputRef}
+        value={value}
+        onChange={onChange}
+      />
+    );
+  } else {
+    return (
+      <input
+        type="text"
+        id="team_name"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:outline-none"
+        placeholder={placeholderText}
+        ref={inputRef}
+        required
+        value={value}
+        onChange={onChange}
+      />
+    );
+  }
+}
+
 // We have to use promises to avoid race conditions
 export default function FilmUpload() {
   const [files, setFiles] = useState([]);
 
   const [teamNameText, setTeamNameText] = useState("");
-  const inputRef = useRef(null);
+  const teamNameInputRef = useRef(null);
 
   const handleTeamNameChange = (event) => {
     setTeamNameText(event.target.value);
   };
 
+  const [inputError, setInputError] = useState(false);
+
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
+    //setInputError(false);
+    if (teamNameInputRef.current) {
+      teamNameInputRef.current.focus();
     }
   }, [teamNameText]);
 
@@ -94,8 +133,13 @@ export default function FilmUpload() {
   }
 
   const handleNextClick = () => {
-    if (currentTaskIndex < taskSet.length - 1) {
-      setCurrentTaskIndex(currentTaskIndex + 1);
+    if (teamNameText.length === 0) {
+      setInputError(true);
+    } else {
+      if (currentTaskIndex < taskSet.length - 1 && files.length>0) {
+        setCurrentTaskIndex(currentTaskIndex + 1);
+        setInputError(false);
+      }
     }
   };
 
@@ -163,17 +207,13 @@ export default function FilmUpload() {
           ))}
         </div>
         <div class="flex items-center justify-center w-full p-2 px-4 bg-white">
-          <input
-            type="text"
-            id="team_name"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:outline-none"
-            placeholder="Team Name"
-            ref={inputRef}
-            required
-            value={teamNameText}
+          <TextInputComponent
+            error={inputError}
+            inputRef={teamNameInputRef}
             onChange={handleTeamNameChange}
+            placeholderText={"Team Name"}
+            value={teamNameText}
           />
-          <input type="text" id="error" class="bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:outline-none block w-full p-2.5" placeholder="Please Enter Team Name"></input>
         </div>
         <div className="flex flex-row bg-gray-50 p-4">
           <div className="flow-root rounded-md px-2 py-2 transition duration-150 ease-in-out focus:outline-none">

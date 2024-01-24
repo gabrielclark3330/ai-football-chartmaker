@@ -24,7 +24,7 @@
 
 export default function ScoutingReportCard({ img, title, subtext, link }) {
   return (
-    <a class="max-w-sm bg-white border border-gray-200 rounded-lg shadow overflow-hidden  hover:bg-gray-100" href={link}>
+    <a class="w-96 bg-white border border-gray-200 rounded-lg shadow overflow-hidden  hover:bg-gray-100 justify-self-center" href={link}>
       <div class="rounded-t-lg w-full h-40 overflow-hidden">
         <img src={img} alt="" class="w-full" />
       </div>

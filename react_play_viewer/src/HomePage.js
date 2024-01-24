@@ -1,7 +1,7 @@
 import FilmUpload from "./FilmUpload";
-import HomePageHeader from "./HomePageHeader";
+import AppHeader from "./AppHeader";
 import Footer from "./Footer";
-import ScoutingReportCard from "./SoutingReportOverviewCard";
+import ScoutingReportCard from "./ScoutingReportOverviewCard";
 
 
 function getRandomDate() {
@@ -52,18 +52,19 @@ export default function HomePage() {
 
   return (
     <div className="bg-[#f5f5f7] min-h-screen flex flex-col">
-      <HomePageHeader />
+      <AppHeader headerTitles={["Library", "Your Team"]} headerLinks={["/home", "#"]}/>
       <div className="flex justify-center w-full my-14">
         <FilmUpload />
       </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] md:grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-4">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(24rem,1fr))] gap-4">
         {imgs.map((img, index) => {
+          let date = getRandomDate();
           return (
             <ScoutingReportCard
               key={index}
-              link={"#"}
+              link={"/report/"+nflTeams[index]+"/"+date}
               title={nflTeams[index]}
-              subtext={getRandomDate()}
+              subtext={date}
               img={img}
             />
           );

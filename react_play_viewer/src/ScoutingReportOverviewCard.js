@@ -22,9 +22,11 @@
       </a>
 */
 
-export default function ScoutingReportCard({ img, title, subtext, link }) {
+export default function ScoutingReportCard({ img, title, subtext, link, onClick}) {
   return (
-    <a class="w-96 bg-white border border-gray-200 rounded-lg shadow overflow-hidden  hover:bg-gray-100 justify-self-center" href={link}>
+    <a class="w-96 bg-white border border-gray-200 rounded-lg shadow overflow-hidden  hover:bg-gray-100 justify-self-center"
+    href={link}
+    onClick={onClick}>
       <div class="rounded-t-lg w-full h-40 overflow-hidden">
         <img src={img} alt="" class="w-full" />
       </div>

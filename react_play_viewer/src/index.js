@@ -5,6 +5,7 @@ import reportWebVitals from "./reportWebVitals";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LandingPage from "./LandingPage";
 import HomePage from "./HomePage";
+import ScoutingReportOverview from "./ScoutingReportOverview";
 
 const router = createBrowserRouter([
   {
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
   {
     path: "/home",
     element: <HomePage />,
+  },
+  {
+    path: "/report/:reportID/:reportDate",
+    element: <ScoutingReportOverview />,
   },
 ]);
 

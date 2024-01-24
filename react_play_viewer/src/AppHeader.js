@@ -3,8 +3,7 @@ import { Dialog } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon, UserCircleIcon, UserIcon } from "@heroicons/react/24/outline";
 import tplogo from "./twopercentlogo.png";
 
-
-export default function HomePageHeader() {
+export default function AppHeader({ headerTitles, headerLinks }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -30,16 +29,19 @@ export default function HomePageHeader() {
           </button>
         </div>
         <div className="hidden lg:flex lg:gap-x-12">
-          <a href="#" className="text-sm font-semibold leading-6 text-gray-900">
-            Library
-          </a>
-          <a href="#" className="text-sm font-semibold leading-6 text-gray-900">
-            Your Team
-          </a>
+          {headerTitles.map((title, index) => {
+            return (
+              <a href={headerLinks[index]}
+              className="text-sm font-semibold leading-6 text-gray-900"
+              >
+                {title}
+              </a>
+            );
+          })}
         </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <a href="#" className="text-sm font-semibold leading-6 text-gray-900 w-7 h-7">
-            <UserIcon/>
+            <UserIcon />
           </a>
         </div>
       </nav>
@@ -72,18 +74,16 @@ export default function HomePageHeader() {
           <div className="mt-6 flow-root">
             <div className="-my-6 divide-y divide-gray-500/10">
               <div className="space-y-2 py-6">
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                >
-                  Library
-                </a>
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                >
-                  Your Team
-                </a>
+                {headerTitles.map((title, index) => {
+                  return (
+                    <a
+                      href={headerLinks[index]}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    >
+                      {title}
+                    </a>
+                  );
+                })}
               </div>
               <div className="py-6">
                 <a

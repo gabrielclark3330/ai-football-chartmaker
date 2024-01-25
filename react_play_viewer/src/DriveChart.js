@@ -9,7 +9,7 @@ export default function DriveCharts({gameDetailsJson}) {
     const games = [game1, game2, game3, game4, game5];
     const gamesNames = ["game1", "game2", "game3", "game4", "game5"];
     return (
-        <div className="flex flex-row w-full h-56 gap-4 overflow-x-auto rounded-lg shadow-lg ring-1 ring-black/5 p-4 bg-white">
+        <div className="flex flex-row w-full h-96 gap-4 overflow-x-auto rounded-lg shadow-lg ring-1 ring-black/5 p-4 bg-white">
             {games.map((game, index)=>{
                 return(
                     <div className="flex-1 p-2" key={index}>

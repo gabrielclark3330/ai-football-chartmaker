@@ -61,6 +61,7 @@ function Field({ isHorizontal, driveJson }) {
   let drives = null;
   let homeTeamName = "";
   let awayTeamName = "";
+  let driveLines = [];
   if (driveJson) {
     const gameID = Object.keys(driveJson).filter((key) => !isNaN(key))[0];
     homeTeamName = driveJson[gameID].home.abbr;
@@ -68,86 +69,85 @@ function Field({ isHorizontal, driveJson }) {
     console.log(homeTeamName);
     console.log(awayTeamName);
     drives = driveJson[gameID].drives;
-  }
-  const driveBarHeightPercentage = 100 / Object.keys(drives).length;
-  let driveBarIndex = 0;
-  let driveLines = [];
-  for (const driveKey of Object.keys(drives)) {
-    if (!isNaN(driveKey)) {
-      let teamName = drives[driveKey].posteam;
-      let startYardline = drives[driveKey].start.yrdln;
-      let endYardline = drives[driveKey].end.yrdln;
+    const driveBarHeightPercentage = 100 / Object.keys(drives).length;
+    let driveBarIndex = 0;
+    for (const driveKey of Object.keys(drives)) {
+      if (!isNaN(driveKey)) {
+        let teamName = drives[driveKey].posteam;
+        let startYardline = drives[driveKey].start.yrdln;
+        let endYardline = drives[driveKey].end.yrdln;
 
-      let startPercentage = 0;
-      if (startYardline.includes(awayTeamName)) {
-        const actualYardline = parseInt(startYardline.split(" ")[1]);
-        startPercentage = 50 + (50 - actualYardline);
-      } else if (startYardline.includes(homeTeamName)) {
-        const actualYardline = parseInt(startYardline.split(" ")[1]);
-        startPercentage = actualYardline;
-      } else {
-        startPercentage = 50;
-      }
-      let endPercentage = 0;
-      if (endYardline.includes(awayTeamName)) {
-        const actualYardline = parseInt(endYardline.split(" ")[1]);
-        endPercentage = 50 + (50 - actualYardline);
-      } else if (endYardline.includes(homeTeamName)) {
-        const actualYardline = parseInt(endYardline.split(" ")[1]);
-        endPercentage = actualYardline;
-      } else {
-        endPercentage = 50;
-      }
+        let startPercentage = 0;
+        if (startYardline.includes(awayTeamName)) {
+          const actualYardline = parseInt(startYardline.split(" ")[1]);
+          startPercentage = 50 + (50 - actualYardline);
+        } else if (startYardline.includes(homeTeamName)) {
+          const actualYardline = parseInt(startYardline.split(" ")[1]);
+          startPercentage = actualYardline;
+        } else {
+          startPercentage = 50;
+        }
+        let endPercentage = 0;
+        if (endYardline.includes(awayTeamName)) {
+          const actualYardline = parseInt(endYardline.split(" ")[1]);
+          endPercentage = 50 + (50 - actualYardline);
+        } else if (endYardline.includes(homeTeamName)) {
+          const actualYardline = parseInt(endYardline.split(" ")[1]);
+          endPercentage = actualYardline;
+        } else {
+          endPercentage = 50;
+        }
 
-      driveLines.push(
-        <svg key={teamName} className="absolute" width="100%" height="100%">
-          <defs>
-            <marker
-              id="triangleB"
-              viewBox="0 0 10 10"
-              refX="1"
-              refY="5"
-              markerUnits="strokeWidth"
-              markerWidth="1"
-              markerHeight="1"
-              orient="auto">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="rgb(37 99 235)" />
-            </marker>
-            <marker
-              id="triangleR"
-              viewBox="0 0 10 10"
-              refX="1"
-              refY="5"
-              markerUnits="strokeWidth"
-              markerWidth="1"
-              markerHeight="1"
-              orient="auto">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="rgb(220 38 38)" />
-            </marker>
-          </defs>
-          <line
-            className={"absolute"}
-            y1={`${(driveBarHeightPercentage * driveBarIndex)+(driveBarHeightPercentage / 2)}%`}
-            y2={`${(driveBarHeightPercentage * driveBarIndex)+(driveBarHeightPercentage / 2)}%`}
-            x1={((startPercentage+10)/1.2)+ "%"}
-            x2={((endPercentage+10)/1.2)+ "%"}
-            stroke={teamName === homeTeamName ? "rgb(220 38 38)" : "rgb(37 99 235)"}
-            strokeWidth={(driveBarHeightPercentage/2) + "%"}
-            markerEnd={teamName === homeTeamName ?"url(#triangleR)":"url(#triangleB)"}
-          />
-          <text
-            className={"absolute"}
-            y={`${(driveBarHeightPercentage * driveBarIndex)+(driveBarHeightPercentage / 2)}%`}
-            x={(((startPercentage+endPercentage+20)/2)/1.2)+ "%"}
-        text-anchor="middle"
-        dominant-baseline="middle"
-        font-family="Roboto,Barlow Condensed,sans-serif"
-        fontSize="10"
-        fill={"white"}
-          >{drives[driveKey].result}</text>
-        </svg>
-      );
-      driveBarIndex += 1;
+        driveLines.push(
+          <svg key={teamName} className="absolute" width="100%" height="100%">
+            <defs>
+              <marker
+                id="triangleB"
+                viewBox="0 0 10 10"
+                refX="1"
+                refY="5"
+                markerUnits="strokeWidth"
+                markerWidth="1"
+                markerHeight="1"
+                orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="rgb(37 99 235)" />
+              </marker>
+              <marker
+                id="triangleR"
+                viewBox="0 0 10 10"
+                refX="1"
+                refY="5"
+                markerUnits="strokeWidth"
+                markerWidth="1"
+                markerHeight="1"
+                orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="rgb(220 38 38)" />
+              </marker>
+            </defs>
+            <line
+              className={"absolute"}
+              y1={`${(driveBarHeightPercentage * driveBarIndex) + (driveBarHeightPercentage / 2)}%`}
+              y2={`${(driveBarHeightPercentage * driveBarIndex) + (driveBarHeightPercentage / 2)}%`}
+              x1={((startPercentage + 10) / 1.2) + "%"}
+              x2={((endPercentage + 10) / 1.2) + "%"}
+              stroke={teamName === homeTeamName ? "rgb(220 38 38)" : "rgb(37 99 235)"}
+              strokeWidth={(driveBarHeightPercentage / 2) + "%"}
+              markerEnd={teamName === homeTeamName ? "url(#triangleR)" : "url(#triangleB)"}
+            />
+            <text
+              className={"absolute"}
+              y={`${(driveBarHeightPercentage * driveBarIndex) + (driveBarHeightPercentage / 2)}%`}
+              x={(((startPercentage + endPercentage + 20) / 2) / 1.2) + "%"}
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-family="Roboto,Barlow Condensed,sans-serif"
+              fontSize="10"
+              fill={"white"}
+            >{drives[driveKey].result}</text>
+          </svg>
+        );
+        driveBarIndex += 1;
+      }
     }
   }
   for (let i = 0; i < 100; i++) {

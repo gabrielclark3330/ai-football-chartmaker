@@ -10,7 +10,7 @@ export default function Table({ tableAsArray }) {
                     <tr>
                         {heading.map((colHeading, index) => {
                             return (
-                                <th scope="col" class="px-6 py-3" key={index}>
+                                <th scope="col" class="px-3 py-3" key={index}>
                                     {colHeading}
                                 </th>
                             );
@@ -21,12 +21,12 @@ export default function Table({ tableAsArray }) {
                     {rows.map((row, index)=>{
                         return(
                     <tr class={index<rows.length-1?"bg-white border-b":"bg-white"} key={index}>
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                        <th scope="row" class="px-3 py-4 font-medium text-gray-900 whitespace-nowrap">
                             {row[0]}
                         </th>
                         {row.slice(1).map((element, index)=>{
                             return(
-                                <td class="px-6 py-4">
+                                <td class="px-3 py-4">
                                     {element}
                                 </td>
                             );

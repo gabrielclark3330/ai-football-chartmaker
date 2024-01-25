@@ -1,5 +1,7 @@
 import AppHeader from "./AppHeader";
+import DriveCharts from "./DriveChart";
 import Footer from "./Footer";
+import ReportTitle from "./ReportTitle";
 import Table from "./Table";
 import { useParams } from "react-router-dom";
 
@@ -34,19 +36,14 @@ export default function ScoutingReportOverview() {
     const {reportID, reportDate} = useParams();
     return (
         <div className="bg-[#f5f5f7] min-h-screen flex flex-col">
-            <AppHeader headerTitles={["Library"]} headerLinks={["/home"]}/>
+            <AppHeader headerTitles={["Library", "Your Team"]} headerLinks={["/home", "#"]}/>
             <div className="flex justify-center w-full my-14">
-
-      <div class="p-5">
-        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 text-center">
-          {reportID}
-        </h5>
-        <p class="mb-3 font-normal text-center text-gray-700">
-                 {reportDate}
-        </p>
-      </div>
+                <ReportTitle reportID={reportID} reportDate={reportDate}/>
             </div>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(24rem,1fr))] gap-4">
+            <div className="flex justify-center w-full mb-7 p-4">
+                <DriveCharts/>
+            </div>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(22rem,1fr))] gap-4 p-4">
                 {tables.map((table, index) => {
                     return (
                         <Table tableAsArray={table} key={index}/>

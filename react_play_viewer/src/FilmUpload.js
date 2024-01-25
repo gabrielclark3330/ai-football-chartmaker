@@ -340,7 +340,7 @@ export default function FilmUpload() {
               key={index}
             >
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900 w-48 h-6 overflow-auto text-nowrap">
+                <p className="text-sm font-medium text-gray-900 w-48 overflow-auto text-nowrap">
                   {game.files.reduce((accumulator, file) => {
                     return accumulator + file.name + " ";
                   }, "")}
@@ -360,7 +360,7 @@ export default function FilmUpload() {
             key={-1}
           >
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-900 w-48 h-6 overflow-auto text-nowrap">
+              <p className="text-sm font-medium text-gray-900 w-48 overflow-auto text-nowrap">
                 {files.reduce((accumulator, file) => {
                   return accumulator + file.name + " ";
                 }, "")}

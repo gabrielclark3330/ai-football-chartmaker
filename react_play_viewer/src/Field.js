@@ -1,7 +1,7 @@
 import "./fonts.css";
 
 
-function HorizontalField() {
+function HorizontalField({driveJson}) {
   let yardNumber = 1;
   let hashes = [];
   for (let i = 0; i < 100; i++) {
@@ -195,12 +195,10 @@ function HorizontalField() {
   }
 
   return (
-    <div className="m-20">
-      <div className="relative w-3/4 aspect-[9/4] bg-white ring-1 ring-gray-900/10 rounded-xl">
+      <div className="relative w-full aspect-[9/4] bg-white ring-1 ring-gray-900/10 rounded-xl">
         {yardlines}
         {hashes}
       </div>
-    </div>
   );
 }
 
@@ -398,12 +396,10 @@ function VerticalField() {
   }
 
   return (
-    <div className="m-20">
-      <div className="relative w-2/3 aspect-[4/9] bg-white ring-1 ring-gray-900/10 rounded-xl">
+      <div className="relative w-full aspect-[4/9] bg-white ring-1 ring-gray-900/10 rounded-xl">
         {yardlines}
         {hashes}
       </div>
-    </div>
   );
 }
 
